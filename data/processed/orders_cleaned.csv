@@ -1,0 +1,11 @@
+order_id,customer_name,order_date,amount,status
+1001,Alice Johnson,2024-01-15,250.00,completed
+1002,Bob Smith,2024-01-15,120.50,completed
+1003,UNKNOWN,2024-01-16,75.00,pending
+1004,David Lee,2024-13-40,300.00,completed
+1005,Eva Green,2024-01-18,120.5,pending
+1006,Frank Moore,not_a_date,150.00,completed
+1007,Grace Kim,2024-01-19,90.00,UNKNOWN
+1008,Grace Kim,2024-01-19,90.00,UNKNOWN
+1009,Henry Ford,2024-01-20,200.00,completed
+1010,UNKNOWN,2024-01-21,60.00,pending

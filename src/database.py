@@ -4,6 +4,7 @@ database.py
 Handles everything related to the SQLite database:
 - Connecting to error_logs.db
 - Creating the error_logs table if it does not already exist
+- Creating the recovery_logs table (Phase 2)
 
 Keeping this logic in one place means the rest of the code never
 has to write raw SQL for setup.
@@ -15,24 +16,21 @@ from pathlib import Path
 # Path to the database file (lives inside logs/)
 DB_PATH = Path(__file__).resolve().parent.parent / "logs" / "error_logs.db"
 
-
 def get_connection() -> sqlite3.Connection:
-    """
-    Open (and if needed create) a connection to the SQLite database.
+    """Open (and if needed create) a connection to the SQLite database.
     Ensures the logs/ folder exists first.
     """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
-
 def initialize_database() -> None:
-    """
-    Create the error_logs table if it doesn't already exist.
+    """Create the error_logs and recovery_logs tables if they don't already exist.
     This is safe to call every run.
     """
     conn = get_connection()
     cursor = conn.cursor()
 
+    # error_logs table (Phase 1)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS error_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +41,22 @@ def initialize_database() -> None:
             error_type TEXT NOT NULL,
             original_value TEXT,
             pipeline_stage TEXT NOT NULL
+        )
+    """)
+
+    # recovery_logs table (Phase 2)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recovery_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            row_number INTEGER,
+            column_name TEXT,
+            error_type TEXT NOT NULL,
+            correction_applied TEXT NOT NULL,
+            original_value TEXT,
+            corrected_value TEXT,
+            recovery_status TEXT NOT NULL
         )
     """)
 

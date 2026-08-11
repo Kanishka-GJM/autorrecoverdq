@@ -45,6 +45,11 @@ def _find_date_columns(df: pd.DataFrame) -> List[str]:
     ]
 
 
+def identify_date_columns(df: pd.DataFrame) -> List[str]:
+    """Public wrapper for _find_date_columns."""
+    return _find_date_columns(df)
+
+
 def check_missing_values(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """Detect missing (NaN/None) values in every column."""
     errors = []
