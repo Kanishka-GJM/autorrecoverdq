@@ -1,7 +1,7 @@
 """
 main.py
 
-Entry point for AutoRecoverDQ – Phase 1 and Phase 2 combined.
+Entry point for AutoRecoverDQ - Phase 1, 2, and 3 combined.
 """
 
 import sys
@@ -12,6 +12,7 @@ from ingest import read_csv_file
 from validator import validate_dataframe
 from logger import log_errors, log_recoveries
 from recovery import recover_dataframe
+from pattern_library import generate_pattern_report
 
 # Base project paths
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,8 +21,8 @@ PROCESSED_DIR = BASE_DIR / "data" / "processed"
 
 
 def run_pipeline(file_name: str) -> None:
-    """Run the full pipeline (Phase 1 validation + Phase 2 recovery) for a CSV file."""
-    # Phase 1 – validation
+    """Run the full pipeline for a CSV file."""
+    # Phase 1 - validation
     initialize_database()
     raw_path = RAW_DIR / file_name
     df = read_csv_file(raw_path)
@@ -31,13 +32,19 @@ def run_pipeline(file_name: str) -> None:
     (PROCESSED_DIR / file_name).write_text(df.to_csv(index=False), encoding="utf-8")
     print_summary(file_name, len(df), summary)
 
-    # Phase 2 – automatic correction
+    # Phase 2 & 3 - automatic correction and pattern intelligence
     cleaned_df, recoveries, recovery_summary = recover_dataframe(df)
     log_recoveries(recoveries, file_name=file_name)
     cleaned_file_name = f"{Path(file_name).stem}_cleaned.csv"
     cleaned_path = PROCESSED_DIR / cleaned_file_name
     cleaned_df.to_csv(cleaned_path, index=False)
     print_recovery_report(file_name, len(df), recovery_summary)
+
+    # Phase 3 - Pattern report generation
+    total_errors = summary['total_errors']
+    auto_fixed_errors = sum(1 for r in recoveries if r["recovery_status"] == "fixed")
+    report_text = generate_pattern_report(total_errors, auto_fixed_errors)
+    print("\n" + report_text + "\n")
 
 
 def print_summary(file_name: str, rows_processed: int, summary: dict) -> None:

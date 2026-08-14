@@ -1,0 +1,14 @@
+--- AutoRecoverDQ: Pattern Intelligence Report ---
+Pattern Summary
+--------------------------------------------------
+INVALID_DATE_FORMAT                 6 occurrences
+WHITESPACE_INCONSISTENCY            4 occurrences
+MISSING_VALUE_NUMERIC               4 occurrences
+UNRECOVERABLE_DATE_FORMAT           2 occurrences
+MISSING_DATE_VALUE                  2 occurrences
+MISSING_VALUE_TEXT                  2 occurrences
+DUPLICATE_ROW                       2 occurrences
+--------------------------------------------------
+Patterns learned: 7
+Auto-fix coverage: 112%
+--------------------------------------------------
