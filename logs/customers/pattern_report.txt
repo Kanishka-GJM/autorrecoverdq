@@ -1,0 +1,7 @@
+--- AutoRecoverDQ: Pattern Intelligence Report (customers) ---
+Pattern Summary
+--------------------------------------------------
+--------------------------------------------------
+Patterns learned: 0
+Auto-fix coverage: 100%
+--------------------------------------------------

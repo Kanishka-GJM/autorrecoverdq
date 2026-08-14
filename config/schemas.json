@@ -1,0 +1,35 @@
+{
+  "customers": {
+    "dataset_name": "Customers",
+    "version": "v1",
+    "policy": "STRICT",
+    "columns": {
+      "customer_id": {"type": "integer", "required": true},
+      "name": {"type": "string", "required": true},
+      "email": {"type": "string", "required": true},
+      "city": {"type": "string", "required": false}
+    }
+  },
+  "orders": {
+    "dataset_name": "Orders",
+    "version": "v1",
+    "policy": "EVOLUTION_ALLOWED",
+    "columns": {
+      "order_id": {"type": "integer", "required": true},
+      "customer_id": {"type": "integer", "required": true},
+      "amount": {"type": "float", "required": true},
+      "order_date": {"type": "date", "required": true}
+    }
+  },
+  "products": {
+    "dataset_name": "Products",
+    "version": "v1",
+    "policy": "STRICT",
+    "columns": {
+      "product_id": {"type": "integer", "required": true},
+      "product_name": {"type": "string", "required": true},
+      "price": {"type": "float", "required": true},
+      "category": {"type": "string", "required": true}
+    }
+  }
+}

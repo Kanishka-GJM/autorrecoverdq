@@ -1,0 +1,8 @@
+--- AutoRecoverDQ: Pattern Intelligence Report (orders) ---
+Pattern Summary
+--------------------------------------------------
+DUPLICATE_ROW                       3 occurrences
+--------------------------------------------------
+Patterns learned: 1
+Auto-fix coverage: 60%
+--------------------------------------------------

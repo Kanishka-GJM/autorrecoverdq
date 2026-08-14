@@ -2,6 +2,7 @@
 recovery.py
 
 Phase 2, 3 & 4: Automatic Correction Engine with Pattern Intelligence.
+Phase 5A: Multi-Dataset Support
 """
 
 from datetime import datetime
@@ -39,7 +40,7 @@ def _try_parse_date(value: str) -> str | None:
             continue
     return None
 
-def trim_whitespace(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+def trim_whitespace(df: pd.DataFrame, dataset_id: str) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     df = df.copy()
     records: List[Dict[str, Any]] = []
     for col in df.columns:
@@ -49,7 +50,7 @@ def trim_whitespace(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]
             trimmed = value.strip()
             if trimmed != value:
                 pattern_name, default_rule = match_pattern("whitespace", col)
-                rule_to_apply = process_error_for_pattern("whitespace", col, pattern_name, default_rule)
+                rule_to_apply = process_error_for_pattern(dataset_id, "whitespace", col, pattern_name, default_rule)
                 records.append(_make_record(
                     row_number=int(row_number) + 1, column_name=col, error_type="whitespace",
                     correction_applied=rule_to_apply, original_value=value, corrected_value=trimmed,
@@ -65,7 +66,7 @@ def normalize_empty_strings_to_na(df: pd.DataFrame) -> pd.DataFrame:
         df.loc[blank_mask, col] = pd.NA
     return df
 
-def normalize_dates(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+def normalize_dates(df: pd.DataFrame, dataset_id: str) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     df = df.copy()
     records: List[Dict[str, Any]] = []
     date_columns = identify_date_columns(df)
@@ -76,7 +77,7 @@ def normalize_dates(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]
             normalized = _try_parse_date(str(value))
             if normalized is None:
                 pattern_name, default_rule = match_pattern("invalid_date_unrecoverable", col)
-                rule_to_apply = process_error_for_pattern("invalid_date", col, pattern_name, default_rule)
+                rule_to_apply = process_error_for_pattern(dataset_id, "invalid_date", col, pattern_name, default_rule)
                 records.append(_make_record(
                     row_number=int(row_number) + 1, column_name=col, error_type="invalid_date",
                     correction_applied=rule_to_apply, original_value=value, corrected_value=value,
@@ -84,7 +85,7 @@ def normalize_dates(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]
                 ))
             elif normalized != value:
                 pattern_name, default_rule = match_pattern("invalid_date", col)
-                rule_to_apply = process_error_for_pattern("invalid_date", col, pattern_name, default_rule)
+                rule_to_apply = process_error_for_pattern(dataset_id, "invalid_date", col, pattern_name, default_rule)
                 records.append(_make_record(
                     row_number=int(row_number) + 1, column_name=col, error_type="invalid_date",
                     correction_applied=rule_to_apply, original_value=value, corrected_value=normalized,
@@ -93,7 +94,7 @@ def normalize_dates(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]
                 df.at[row_number, col] = normalized
     return df, records
 
-def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+def fill_missing_values(df: pd.DataFrame, dataset_id: str) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     df = df.copy()
     records: List[Dict[str, Any]] = []
     date_columns = set(identify_date_columns(df))
@@ -104,7 +105,7 @@ def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, 
         if col in date_columns:
             pattern_name, default_rule = match_pattern("missing_date", col)
             for row_number in df.index[missing_mask]:
-                rule_to_apply = process_error_for_pattern("missing_value", col, pattern_name, default_rule)
+                rule_to_apply = process_error_for_pattern(dataset_id, "missing_value", col, pattern_name, default_rule)
                 records.append(_make_record(
                     row_number=int(row_number) + 1, column_name=col, error_type="missing_value",
                     correction_applied=rule_to_apply, original_value=None, corrected_value=None,
@@ -123,7 +124,7 @@ def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, 
             pattern_name, default_rule = match_pattern("missing_text", col)
             
         for row_number in df.index[missing_mask]:
-            rule_to_apply = process_error_for_pattern("missing_value", col, pattern_name, default_rule)
+            rule_to_apply = process_error_for_pattern(dataset_id, "missing_value", col, pattern_name, default_rule)
             records.append(_make_record(
                 row_number=int(row_number) + 1, column_name=col, error_type="missing_value",
                 correction_applied=rule_to_apply, original_value=None, corrected_value=fill_value,
@@ -132,31 +133,31 @@ def fill_missing_values(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, 
         df.loc[missing_mask, col] = fill_value
     return df, records
 
-def remove_duplicate_rows(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+def remove_duplicate_rows(df: pd.DataFrame, dataset_id: str) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     duplicate_mask = df.duplicated(keep="first")
     records: List[Dict[str, Any]] = []
     for row_number in df.index[duplicate_mask]:
         pattern_name, default_rule = match_pattern("duplicate_row", None)
-        rule_to_apply = process_error_for_pattern("duplicate_row", None, pattern_name, default_rule)
+        rule_to_apply = process_error_for_pattern(dataset_id, "duplicate_row", None, pattern_name, default_rule)
         records.append(_make_record(
             row_number=int(row_number) + 1, column_name=None, error_type="duplicate_row",
             correction_applied=rule_to_apply, original_value=df.loc[row_number].to_dict(), corrected_value=None,
             recovery_status="fixed", pattern_name=pattern_name
         ))
-    cleaned_df = df[~duplicate_mask].reset_index(drop=True)
+    cleaned_df = df[~duplicate_mask]
     return cleaned_df, records
 
-def recover_dataframe(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Dict[str, Any]], Dict[str, int]]:
+def recover_dataframe(df: pd.DataFrame, dataset_id: str) -> Tuple[pd.DataFrame, List[Dict[str, Any]], Dict[str, int]]:
     working_df = df.copy()
     all_records: List[Dict[str, Any]] = []
-    working_df, whitespace_records = trim_whitespace(working_df)
+    working_df, whitespace_records = trim_whitespace(working_df, dataset_id)
     all_records.extend(whitespace_records)
     working_df = normalize_empty_strings_to_na(working_df)
-    working_df, date_records = normalize_dates(working_df)
+    working_df, date_records = normalize_dates(working_df, dataset_id)
     all_records.extend(date_records)
-    working_df, missing_records = fill_missing_values(working_df)
+    working_df, missing_records = fill_missing_values(working_df, dataset_id)
     all_records.extend(missing_records)
-    working_df, duplicate_records = remove_duplicate_rows(working_df)
+    working_df, duplicate_records = remove_duplicate_rows(working_df, dataset_id)
     all_records.extend(duplicate_records)
     summary = {
         "invalid_dates_repaired": sum(1 for r in date_records if r["recovery_status"] == "fixed"),

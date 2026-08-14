@@ -1,0 +1,8 @@
+--- AutoRecoverDQ: Pipeline Recovery Summary (customers) ---
+Rows processed: 6
+Automatically repaired: 3
+Retried successfully: 3
+Sent to quarantine: 0
+Pipeline completion rate: 100%
+Recovery success rate: 100.0%
+------------------------------------------------
