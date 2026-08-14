@@ -1,0 +1,11 @@
+order_id,order_date,customer_name,amount
+1,2023-01-01,Alice,100
+2,01/02/2023,Bob,200
+3,2023-03-01, Charlie ,300
+4,,Eve,
+5,2023-01-01,Alice,100
+6,2023-01-01,Alice,100
+7,invalid,Frank,500
+8,corrupted_row_missing_data,,
+9,2023-06-01,Heidi,
+10,2023-07-01,,700

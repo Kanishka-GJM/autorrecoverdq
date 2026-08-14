@@ -1,0 +1,10 @@
+order_id,order_date,customer_name,amount
+4,,Eve,
+7,invalid,Frank,500
+8,corrupted_row_missing_data,,
+4,,Eve,
+7,invalid,Frank,500
+8,corrupted_row_missing_data,,
+4,,Eve,
+7,invalid,Frank,500
+8,corrupted_row_missing_data,,

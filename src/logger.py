@@ -6,6 +6,7 @@ error_logs SQLite table. The validator produces plain dictionaries
  describing each error; this file just persists them.
 
 Phase 2 adds logging of recovery records.
+Phase 4 extends recovery_logs with retry_attempt and final_status.
 """
 
 from datetime import datetime, timezone
@@ -57,7 +58,7 @@ def log_recoveries(recoveries: List[Dict[str, Any]], file_name: str) -> None:
 
     Each recovery dict is expected to have the keys:
         row_number, column_name, error_type, correction_applied,
-        original_value, corrected_value, recovery_status
+        original_value, corrected_value, recovery_status, retry_attempt, final_status
     """
     if not recoveries:
         return
@@ -78,6 +79,8 @@ def log_recoveries(recoveries: List[Dict[str, Any]], file_name: str) -> None:
             str(recovery.get("original_value")),
             str(recovery.get("corrected_value")),
             recovery.get("recovery_status"),
+            recovery.get("retry_attempt", 1),
+            recovery.get("final_status", "PENDING")
         )
         for recovery in recoveries
     ]
@@ -85,8 +88,9 @@ def log_recoveries(recoveries: List[Dict[str, Any]], file_name: str) -> None:
     cursor.executemany("""
         INSERT INTO recovery_logs (
             timestamp, file_name, row_number, column_name, error_type,
-            correction_applied, original_value, corrected_value, recovery_status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            correction_applied, original_value, corrected_value, recovery_status,
+            retry_attempt, final_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, rows_to_insert)
 
     conn.commit()
